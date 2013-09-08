@@ -6,9 +6,11 @@ var path = require('path');
 var sys = require('sys');
 var exec = require('child_process').exec;
 
+var ffmpeg = require('fluent-ffmpeg');
+
 var puts = function (error, stdout, stderr) {
   'use strict';
-  sys.puts(stdout);
+  sys.puts(stderr);
 };
 
 var sourceDir = process.argv[2];
@@ -41,23 +43,25 @@ FS.exists(sourceDir + '/ogv/')
     var data = this;
 
     var filename = path.basename(filePath, '.mov');
-    var ffmpeg = 'ffmpeg';
+    /*var ffmpeg = 'ffmpeg';
     ffmpeg += ' -i ' + sourceDir + '/mov/' + filePath;
     ffmpeg += ' -codec:v ' + data.vcodec;
     ffmpeg += ' -codec:a ' + data.acodec;
-    ffmpeg += ' ' + filename + '.' + data.format;
-    exec(ffmpeg, puts);
-
-    /*var process = ffmpeg('mov/' + filePath);
-    process.then(function (video) {
-      video.setVideoFormat(data.format);
-      video.setVideoCodec(data.vcodec);
-      video.setAudioCodec(data.acodec);
-      video.save(sourceDir + '/' + data.format + '/' + filename + '.' + data.format);
-    }, function (err) {
-      console.log('Error: ' + err);
-    });*/
-
+    ffmpeg += ' ' + sourceDir + '/' + data.format + '/' + filename + '.' + data.format;
+    console.log(ffmpeg);
+    exec(ffmpeg, puts);*/
+    
+    console.log('Converting ' + filename + ' to format ' + data.format);
+    
+    var proc = new ffmpeg({ source: sourceDir + '/mov/' + filePath })
+    .withVideoCodec(data.vcodec)
+    .withAudioCodec(data.acodec)
+    .onProgress(function (progress) {
+      process.stdout.write('Frames Rendered: ' + progress.frames + 'Percent Done: ' + progress.percent + '\r');
+    })
+    .saveToFile(sourceDir + '/' + data.format + '/' + filename + '.' + data.format, function (stdout, stderr) {
+      console.log('file has been converted succesfully');
+    });
   };
 
   var movFile = function (fileName) {
