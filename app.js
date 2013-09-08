@@ -46,8 +46,7 @@ FS.exists(sourceDir + '/ogv/')
     ffmpeg += ' -codec:v ' + data.vcodec;
     ffmpeg += ' -codec:a ' + data.acodec;
     ffmpeg += ' ' + filename + '.' + data.format;
-    console.log(ffmpeg);
-/*    exec('ffmpeg -i ' + , puts);*/
+    exec(ffmpeg, puts);
 
     /*var process = ffmpeg('mov/' + filePath);
     process.then(function (video) {
