@@ -79,5 +79,11 @@ FS.exists(sourceDir + '/ogv/')
     vcodec: 'libtheora',
     acodec: 'libvorbis'
   });
+  
+  _.each(list, convert, {
+    format: 'wmv',
+    vcodec: 'msmpeg4',
+    acodec: 'wmav2'
+  });
 })
 .done();
