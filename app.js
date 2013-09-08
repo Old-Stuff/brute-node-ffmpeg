@@ -2,23 +2,32 @@ var ffmpeg = require('ffmpeg');
 var _ = require('underscore');
 var q = require('q');
 var FS = require('q-io/fs');
+var path = require('path');
 
-FS.list(__dirname)
+var sourceDir = process.argv[2];
+
+FS.list(sourceDir)
 .then(function (list) {
   'use strict';
-  console.log(list);
-});
+  var count = 0;
+  
+  var convert = function (path) {
+    console.log(path);
 
-try {
-  var original = new ffmpeg(__dirname + '/samples/prores422_29.97.mov');
-  original.then(function (video) {
-    'use strict';
-    console.log('The video is ready to be processed');
-  }, function (err) {
-    'use strict';
-    console.log('Error: ' + err);
-  });
-} catch (e) {
-  console.log(e.code);
-  console.log(e.msg);
-}
+    var process = ffmpeg('mov/' + path);
+    process.then(function (video) {
+      console.log(video.metadata);
+    }, function (err) {
+      console.log('Error: ' + err);
+    });
+    
+  };
+  
+  var movFile = function (fileName) {
+    return path.extname(fileName) === '.mov';
+  };
+  
+  list = _.filter(list, movFile);
+  
+  _.each(list, convert);
+});
