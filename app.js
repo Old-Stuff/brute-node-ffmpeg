@@ -56,11 +56,15 @@ FS.exists(sourceDir + '/ogv/')
     var proc = new ffmpeg({ source: sourceDir + '/mov/' + filePath })
     .withVideoCodec(data.vcodec)
     .withAudioCodec(data.acodec)
+    .withAudioQuality(5)
+    .addOption('-qscale:v', 7)
+    .keepPixelAspect(true)
     .onProgress(function (progress) {
-      process.stdout.write('Frames Rendered: ' + progress.frames + 'Percent Done: ' + progress.percent + '\r');
+      process.stdout.write('Frames Rendered: ' + progress.frames + ' Percent Done: ' + progress.percent + '\r');
     })
     .saveToFile(sourceDir + '/' + data.format + '/' + filename + '.' + data.format, function (stdout, stderr) {
-      console.log('file has been converted succesfully');
+      
+      process.stdout.write('file has been converted succesfully\r');
     });
   };
 
