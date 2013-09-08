@@ -38,18 +38,28 @@ FS.exists(sourceDir + '/ogv/')
 .then(function (list) {
   'use strict';
   var count = 0;
+  
+  var metaConvert = function (fullList, dataList) {
+    if (dataList.length === 0) {
+      return;
+    }
 
-  var convert = function (filePath) {
-    var data = this;
-
+    var format = dataList.shift();
+    convertWrap(_.clone(list), format)
+    .then(function () {
+      metaConvert(fullList, dataList);
+    });
+  };
+  
+  var convertWrap = function (list, data) {
+    var deferred = q.defer();
+    convert(list, data, deferred);
+    return deferred.promise;
+  };
+  
+  var convert = function (list, data, deferred) {
+    var filePath = list.shift();
     var filename = path.basename(filePath, '.mov');
-    /*var ffmpeg = 'ffmpeg';
-    ffmpeg += ' -i ' + sourceDir + '/mov/' + filePath;
-    ffmpeg += ' -codec:v ' + data.vcodec;
-    ffmpeg += ' -codec:a ' + data.acodec;
-    ffmpeg += ' ' + sourceDir + '/' + data.format + '/' + filename + '.' + data.format;
-    console.log(ffmpeg);
-    exec(ffmpeg, puts);*/
     
     console.log('Converting ' + filename + ' to format ' + data.format);
     
@@ -63,8 +73,14 @@ FS.exists(sourceDir + '/ogv/')
       process.stdout.write('Frames Rendered: ' + progress.frames + ' Percent Done: ' + progress.percent + '\r');
     })
     .saveToFile(sourceDir + '/' + data.format + '/' + filename + '.' + data.format, function (stdout, stderr) {
-      
-      process.stdout.write('file has been converted succesfully\r');
+      console.log('');
+      console.log('file has been converted succesfully\r');
+      if (list.length === 0) {
+        deferred.resolve();
+      }
+      else {
+        convert(list, data, deferred);
+      }
     });
   };
 
@@ -74,16 +90,14 @@ FS.exists(sourceDir + '/ogv/')
 
   list = _.filter(list, movFile);
 
-  _.each(list, convert, {
+  metaConvert(list, [{
     format: 'ogv',
     vcodec: 'libtheora',
     acodec: 'libvorbis'
-  });
-  
-  _.each(list, convert, {
+  }, {
     format: 'wmv',
     vcodec: 'msmpeg4',
     acodec: 'wmav2'
-  });
+  }]);
 })
 .done();
