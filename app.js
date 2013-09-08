@@ -63,7 +63,10 @@ FS.exists(sourceDir + '/ogv/')
     
     console.log('Converting ' + filename + ' to format ' + data.format);
     
-    var proc = new ffmpeg({ source: sourceDir + '/mov/' + filePath })
+    var proc = new ffmpeg({
+      source: sourceDir + '/mov/' + filePath,
+      timeout: 0
+    })
     .withVideoCodec(data.vcodec)
     .withAudioCodec(data.acodec)
     .withAudioQuality(5)
