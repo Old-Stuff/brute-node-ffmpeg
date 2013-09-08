@@ -1,16 +1,23 @@
-var ffmpeg = require('ffmpeg');
+/*var ffmpeg = require('ffmpeg');*/
 var _ = require('underscore');
 var q = require('q');
 var FS = require('q-io/fs');
 var path = require('path');
+var sys = require('sys');
+var exec = require('child_process').exec;
+
+var puts = function (error, stdout, stderr) {
+  'use strict';
+  sys.puts(stdout);
+};
 
 var sourceDir = process.argv[2];
 
-FS.exists(sourceDir + '/ogg/')
+FS.exists(sourceDir + '/ogv/')
 .then(function (exists) {
   'use strict';
   if (!exists) {
-    return FS.makeDirectory(sourceDir + '/ogg/').then(FS.exists(sourceDir + '/wmv/'));
+    return FS.makeDirectory(sourceDir + '/ogv/').then(FS.exists(sourceDir + '/wmv/'));
   }
   else {
     return FS.exists(sourceDir + '/wmv/');
@@ -30,15 +37,27 @@ FS.exists(sourceDir + '/ogg/')
   'use strict';
   var count = 0;
 
-  var convert = function (path) {
-    console.log(path);
+  var convert = function (filePath) {
+    var data = this;
 
-    var process = ffmpeg('mov/' + path);
+    var filename = path.basename(filePath, '.mov');
+    var ffmpeg = 'ffmpeg';
+    ffmpeg += ' -i ' + sourceDir + '/mov/' + filePath;
+    ffmpeg += ' -codec:v ' + data.vcodec;
+    ffmpeg += ' -codec:a ' + data.acodec;
+    ffmpeg += ' ' + filename + '.' + data.format;
+    console.log(ffmpeg);
+/*    exec('ffmpeg -i ' + , puts);*/
+
+    /*var process = ffmpeg('mov/' + filePath);
     process.then(function (video) {
-      console.log(video.metadata);
+      video.setVideoFormat(data.format);
+      video.setVideoCodec(data.vcodec);
+      video.setAudioCodec(data.acodec);
+      video.save(sourceDir + '/' + data.format + '/' + filename + '.' + data.format);
     }, function (err) {
       console.log('Error: ' + err);
-    });
+    });*/
 
   };
 
@@ -48,6 +67,10 @@ FS.exists(sourceDir + '/ogg/')
 
   list = _.filter(list, movFile);
 
-  _.each(list, convert);
+  _.each(list, convert, {
+    format: 'ogv',
+    vcodec: 'libtheora',
+    acodec: 'libvorbis'
+  });
 })
 .done();
